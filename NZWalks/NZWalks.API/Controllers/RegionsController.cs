@@ -1,6 +1,5 @@
 ﻿using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
-using NZWalks.API.Models.Domain;
 using NZWalks.API.Repositories;
 
 namespace NZWalks.API.Controllers

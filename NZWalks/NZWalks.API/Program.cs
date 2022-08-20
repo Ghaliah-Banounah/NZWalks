@@ -25,6 +25,10 @@ builder.Services.AddScoped<IRegionRepository, RegionRepository>();
 // give me the implementation in WalksRepository
 builder.Services.AddScoped<IWalksRepository, WalksRepository>();
 
+// Whenever we ask for the IWalkDifficultyRepository interface,
+// give me the implementation in WalkDifficultyRepository
+builder.Services.AddScoped<IWalkDifficultyRepository, WalkDifficultyRepository>();
+
 
 builder.Services.AddAutoMapper(typeof(Program).Assembly);
 var app = builder.Build();
