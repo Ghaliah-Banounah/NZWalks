@@ -9,6 +9,8 @@ namespace NZWalks.API.Controllers
     public class WalksController : Controller
     {
         private readonly IWalksRepository _walkRepository;
+        private readonly IRegionRepository _regionRepository;
+        private readonly IWalkDifficultyRepository _walkDifficultyRepository;
         private readonly IMapper _mapper;
 
         public WalksController(IWalksRepository walkRepository, IMapper mapper)
@@ -54,6 +56,12 @@ namespace NZWalks.API.Controllers
         [HttpPost]
         public async Task<IActionResult> AddWalkAsync([FromBody] Models.DTO.AddWalkRequest addWalkRequest)
         {
+            // Validate incoming request
+            if (!await ValidateAddWalkAsync(addWalkRequest))
+            {
+                return BadRequest(ModelState);
+            }
+
             // Convert DTO to Domain object
             var walk = new Models.Domain.Walks
             {
@@ -78,6 +86,12 @@ namespace NZWalks.API.Controllers
         [Route("{id:guid}")]
         public async Task<IActionResult> UpdateRegionAsync([FromRoute] Guid id, [FromBody] Models.DTO.UpdateWalkRequest updWalkRequest)
         {
+            // Validate incoming request
+            if (! await ValidateUpdateWalkAsync(updWalkRequest))
+            {
+                return BadRequest(ModelState);
+            }
+
             // Convert DTO to Domain object
             var walk = _mapper.Map<Models.Domain.Walks>(updWalkRequest);
 
@@ -117,5 +131,51 @@ namespace NZWalks.API.Controllers
             // Return Ok response
             return Ok(walkDTO);
         }
+
+        #region Validation Methods
+
+        private async Task<bool> ValidateAddWalkAsync(Models.DTO.AddWalkRequest addWalkRequest)
+        {
+            var region = await _regionRepository.GetAsync(addWalkRequest.RegionId);
+            if (region == null)
+            {
+                ModelState.AddModelError(nameof(addWalkRequest.RegionId), $"{nameof(addWalkRequest.RegionId)} is invalid");
+            }
+
+            var walkDifficulty = await _walkDifficultyRepository.GetAsync(addWalkRequest.WalkDifficultyId);
+            if (walkDifficulty == null)
+            {
+                ModelState.AddModelError(nameof(addWalkRequest.WalkDifficultyId), $"{nameof(addWalkRequest.WalkDifficultyId)} is invalid");
+            }
+
+            if (ModelState.ErrorCount > 0)
+            {
+                return false;
+            }
+            return true;
+        }
+
+        private async Task<bool> ValidateUpdateWalkAsync(Models.DTO.UpdateWalkRequest updateWalkRequest)
+        {
+            var region = await _regionRepository.GetAsync(updateWalkRequest.RegionId);
+            if (region == null)
+            {
+                ModelState.AddModelError(nameof(updateWalkRequest.RegionId), $"{nameof(updateWalkRequest.RegionId)} is invalid");
+            }
+
+            var walkDifficulty = await _walkDifficultyRepository.GetAsync(updateWalkRequest.WalkDifficultyId);
+            if (walkDifficulty == null)
+            {
+                ModelState.AddModelError(nameof(updateWalkRequest.WalkDifficultyId), $"{nameof(updateWalkRequest.WalkDifficultyId)} is invalid");
+            }
+
+            if (ModelState.ErrorCount > 0)
+            {
+                return false;
+            }
+            return true;
+        }
+
+        #endregion
     }
 }
